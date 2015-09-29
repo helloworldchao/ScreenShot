@@ -67,9 +67,10 @@ public class ScreenShot {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser choosePath = new JFileChooser();
 				choosePath.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				choosePath.showSaveDialog(Frame);
-				Global.path = choosePath.getSelectedFile();
-				ui.PathText.setText(Global.path.getAbsolutePath());
+				if (choosePath.showSaveDialog(Frame) == 0) {
+					Global.path = choosePath.getSelectedFile();
+					ui.PathText.setText(Global.path.getAbsolutePath());
+				}
 			}
 		});
 	}
