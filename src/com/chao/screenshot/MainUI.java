@@ -21,13 +21,13 @@ public class MainUI {
 		
 		ui.AboutBtn.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
-				JOptionPane.showMessageDialog(Frame, "屏幕截图软件\n版本： Beta 1.0\n作者：余超"
+				JOptionPane.showMessageDialog(Frame, "屏幕截图软件\n版本： v1.0\n作者：余超"
 						+ "\n邮箱：helloworldchao@outlook.com");
 			}
 		});
 		
-		Frame.setSize(280, 170);
-		Frame.setLocation(550, 250);
+		Frame.setSize(265, 140);
+		Frame.setLocation(600, 300);
 		Frame.setResizable(false);
 		Frame.setVisible(true);
 		
@@ -43,17 +43,21 @@ class UI {
 	JFrame Frame;
 	String name, id;
 	
-	JPanel TopPanel = new JPanel(new GridLayout(4, 1)),
+	JPanel TopPanel = new JPanel(new GridLayout(3, 2)),
+		ChoosePanel = new JPanel(new GridLayout(1, 1)),
 		BottomPanel = new JPanel(new GridLayout(1, 2));
 	
 	JLabel IdLabel = new JLabel("学号："),
-		 NameLabel = new JLabel("姓名：");
+		 NameLabel = new JLabel("姓名："),
+		 PathLabel = new JLabel("路径：");
 	
 	JButton StartBtn = new JButton("开始截图"),
-			AboutBtn = new JButton("关于作者");
+			AboutBtn = new JButton("关于作者"),
+	   ChoosePathBtn = new JButton("改变保存路径");
 	
 	JTextField IdText = new JTextField(),
-			 NameText = new JTextField();
+			 NameText = new JTextField(),
+			 PathText = new JTextField("默认保存在桌面");
 
 	public UI(JFrame Frame) {
 		this.Frame = Frame;
@@ -63,6 +67,12 @@ class UI {
 		TopPanel.add(IdText);
 		TopPanel.add(NameLabel);
 		TopPanel.add(NameText);
+		TopPanel.add(PathLabel);
+		TopPanel.add(PathText);
+		PathText.setEditable(false);
+		
+		Frame.add(ChoosePanel, BorderLayout.CENTER);
+		ChoosePanel.add(ChoosePathBtn);
 		
 		Frame.add(BottomPanel, BorderLayout.SOUTH);
 		BottomPanel.add(StartBtn);

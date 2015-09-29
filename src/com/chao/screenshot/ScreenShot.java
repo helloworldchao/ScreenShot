@@ -14,11 +14,17 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
+
+class Global {
+	public static File path = FileSystemView.getFileSystemView().getHomeDirectory();
+}
 
 public class ScreenShot {
 	JFrame Frame;
@@ -54,6 +60,18 @@ public class ScreenShot {
 
 			}
 		});
+		
+		ui.ChoosePathBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser choosePath = new JFileChooser();
+				choosePath.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				choosePath.showSaveDialog(Frame);
+				Global.path = choosePath.getSelectedFile();
+				ui.PathText.setText(Global.path.getAbsolutePath());
+			}
+		});
 	}
 	
 	public void SnapAndSave(String name, String id) throws AWTException, IOException {
@@ -68,22 +86,23 @@ public class ScreenShot {
         Image img = imgIcon.getImage();
         String strId = id;
         String strName = name;
+        String strComputerId = 	System.getenv().get("COMPUTERNAME");
 
         g.drawImage(img, 0, 0, null);
         g.setColor(Color.RED);
         g.setFont(font);
-        g.drawString(strId, 30, 30);
-        g.drawString(strName, 125, 60);
+        g.drawString(strComputerId, 30, 30);
+        g.drawString(strName, 30, 60);
+        g.drawString(strId, 30, 90);
         g.dispose();
 
-		File path = FileSystemView.getFileSystemView().getHomeDirectory();
         String format = "jpg";
-        File file = new File(path + File.separator + id + "-" + name + "." + format);
+        File file = new File(Global.path  + File.separator + id + "-" + name + "." + format);
         if(file.exists()){
-        	JOptionPane.showMessageDialog(Frame, "桌面存在同名文件，请先改名！");
+        	JOptionPane.showMessageDialog(Frame, "目标路径存在同名文件，请先改名！");
 		} else {
         	ImageIO.write(saveImage, format, file);
-        	JOptionPane.showMessageDialog(Frame, "截图成功！已保存在桌面！");
+        	JOptionPane.showMessageDialog(Frame, "截图成功！已保存在" + Global.path + "！");
         }
 	}
 }
