@@ -1,5 +1,6 @@
 package com.chao.screenshot;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -12,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -48,9 +50,10 @@ public class ScreenShot {
 					
 				} catch (Exception e1) {
 					JOptionPane.showMessageDialog(Frame, "对不起，权限不够，请重新启动程序"
-							+ "\n并将截图保存在其他磁盘\n或使用管理员权限运行！");
+						+ "\n并将截图保存在其他磁盘\n或使用管理员权限运行！");
+					e1.printStackTrace();
 					System.exit(0);
-				}			
+				} 		
 			}
 		});
 		
@@ -68,7 +71,7 @@ public class ScreenShot {
 		});
 	}
 	
-	public void SnapAndSave(String name, String id) throws Exception {
+	public void SnapAndSave(String name, String id) throws AWTException, IOException {
 		Robot robot = new Robot();
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         image = robot.createScreenCapture(new Rectangle(0, 0, d.width, d.height));
