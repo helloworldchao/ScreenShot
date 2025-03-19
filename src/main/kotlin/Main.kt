@@ -18,7 +18,7 @@ import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.JFileChooser
 
-private fun takeScreenshot(note: String, savePath: String) {
+private fun takeScreenshot(note: String, savePath: String): File? {
     try {
         val robot = Robot()
         val screenRect = Rectangle(Toolkit.getDefaultToolkit().screenSize)
@@ -39,8 +39,10 @@ private fun takeScreenshot(note: String, savePath: String) {
         val outputFile = File(savePath, "screenshot_${System.currentTimeMillis()}.png")
         ImageIO.write(awtImage, "png", outputFile)
         println("截图已保存至: ${outputFile.absolutePath}")
+        return outputFile
     } catch (e: Exception) {
         e.printStackTrace()
+        return null
     }
 }
 
@@ -49,8 +51,11 @@ private fun takeScreenshot(note: String, savePath: String) {
 @Preview
 fun App(updateWindowVisible: (windowVisible: Boolean) -> Unit) {
     var remark by remember { mutableStateOf("") }
+    var savedFile by remember { mutableStateOf<File?>(null) }
     var savePath by remember { mutableStateOf(System.getProperty("user.home") + File.separator + "Desktop") }
     var aboutDialogVisible by remember { mutableStateOf(false) }
+    var tipDialogVisible by remember { mutableStateOf(false) }
+    var tip by remember { mutableStateOf("") }
 
     MaterialTheme {
         Column(
@@ -90,7 +95,7 @@ fun App(updateWindowVisible: (windowVisible: Boolean) -> Unit) {
                             withContext(Dispatchers.IO) {
                                 updateWindowVisible(false)
                                 delay(500)
-                                takeScreenshot(remark, savePath)
+                                savedFile = takeScreenshot(remark, savePath)
                                 updateWindowVisible(true)
                             }
                         }
@@ -106,12 +111,58 @@ fun App(updateWindowVisible: (windowVisible: Boolean) -> Unit) {
                     Text("关于作者")
                 }
             }
+            savedFile?.let {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("已保存至：")
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            try {
+                                Desktop.getDesktop().open(savedFile!!.parentFile)
+                            } catch (_: Exception) {
+                                tip = "文件夹不存在"
+                                tipDialogVisible = true
+                            }
+                        }) {
+                        Text("打开文件夹")
+                    }
+                    Spacer(modifier = Modifier.padding(2.dp))
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            try {
+                                Desktop.getDesktop().open(savedFile)
+                            } catch (_: Exception) {
+                                tip = "文件不存在"
+                                tipDialogVisible = true
+                            }
+                        }) {
+                        Text("打开文件")
+                    }
+                }
+                Text("${savedFile?.absolutePath}")
+            }
+        }
+
+        if (tipDialogVisible) {
+            AlertDialog(
+                title = { Text("警告") },
+                text = { Text(tip) },
+                buttons = {},
+                onDismissRequest = {
+                    tipDialogVisible = false
+                    tip = ""
+                }
+            )
         }
 
         if (aboutDialogVisible) {
             AlertDialog(
                 title = { Text("关于作者") },
-                text = { Text("作者：helloworldchao\n更新时间：2025/03/18 00:00:00\n版本号：v2.0") },
+                text = { Text("作者：helloworldchao\n联系方式：helloworldchao@outlook.com\n更新时间：${Version.UPDATE_TIME}\n版本号：v${Version.PACKAGE_VERSION}") },
                 buttons = {},
                 onDismissRequest = { aboutDialogVisible = false }
             )
@@ -122,7 +173,7 @@ fun App(updateWindowVisible: (windowVisible: Boolean) -> Unit) {
 fun main() = application {
     var windowVisible by remember { mutableStateOf(true) }
     val windowState = rememberWindowState(
-        size = DpSize(500.dp, 300.dp),
+        size = DpSize(500.dp, 400.dp),
         position = WindowPosition.Aligned(Alignment.Center)
     )
     Window(

@@ -1,4 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 plugins {
     kotlin("jvm")
@@ -22,6 +24,9 @@ dependencies {
     implementation(compose.desktop.currentOs)
 }
 
+val definedPackageVersion = "2.0.0"
+val updateTime: String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+
 compose.desktop {
     application {
         mainClass = "MainKt"
@@ -29,7 +34,29 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "screenshot"
-            packageVersion = "1.0.0"
+            packageVersion = definedPackageVersion
         }
     }
 }
+
+// 创建生成版本类的任务
+tasks.register("generateVersionClass") {
+    val outputDir = project.layout.buildDirectory.dir("generated/sources/version/kotlin")
+    outputs.dir(outputDir)
+
+    doLast {
+        val versionFile = File(outputDir.get().asFile, "Version.kt")
+        versionFile.parentFile.mkdirs()
+        versionFile.writeText(
+            """
+            object Version {
+                const val PACKAGE_VERSION = "$definedPackageVersion"
+                const val UPDATE_TIME = "$updateTime"
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+// 将生成任务关联到编译流程
+kotlin.sourceSets.getByName("main").kotlin.srcDir(tasks.named("generateVersionClass"))
