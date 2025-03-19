@@ -18,40 +18,36 @@ import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.JFileChooser
 
-@OptIn(DelicateCoroutinesApi::class)
 private fun takeScreenshot(note: String, savePath: String) {
-    GlobalScope.launch {
-        withContext(Dispatchers.IO) {
-            try {
-                val robot = Robot()
-                val screenRect = Rectangle(Toolkit.getDefaultToolkit().screenSize)
-                val awtImage = robot.createScreenCapture(screenRect)
+    try {
+        val robot = Robot()
+        val screenRect = Rectangle(Toolkit.getDefaultToolkit().screenSize)
+        val awtImage = robot.createScreenCapture(screenRect)
 
-                val g: Graphics = awtImage.graphics
-                val font = Font("宋体", Font.BOLD, 30)
-                val imgIcon = ImageIcon()
-                val img = imgIcon.image
+        val g: Graphics = awtImage.graphics
+        val font = Font("宋体", Font.BOLD, 30)
+        val imgIcon = ImageIcon()
+        val img = imgIcon.image
 
-                // 添加水印
-                g.drawImage(img, 0, 0, null)
-                g.color = Color.RED
-                g.font = font
-                g.drawString(note, 30, 60)
-                g.dispose()
+        // 添加水印
+        g.drawImage(img, 0, 0, null)
+        g.color = Color.RED
+        g.font = font
+        g.drawString(note, 30, 60)
+        g.dispose()
 
-                val outputFile = File(savePath, "screenshot_${System.currentTimeMillis()}.png")
-                ImageIO.write(awtImage, "png", outputFile)
-                println("截图已保存至: ${outputFile.absolutePath}")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        val outputFile = File(savePath, "screenshot_${System.currentTimeMillis()}.png")
+        ImageIO.write(awtImage, "png", outputFile)
+        println("截图已保存至: ${outputFile.absolutePath}")
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 @Preview
-fun App(updateMinimized: (status: Boolean) -> Unit) {
+fun App(updateWindowVisible: (windowVisible: Boolean) -> Unit) {
     var remark by remember { mutableStateOf("") }
     var savePath by remember { mutableStateOf(System.getProperty("user.home") + File.separator + "Desktop") }
     var aboutDialogVisible by remember { mutableStateOf(false) }
@@ -90,9 +86,14 @@ fun App(updateMinimized: (status: Boolean) -> Unit) {
                 Button(
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        updateMinimized(true)
-                        takeScreenshot(remark, savePath)
-                        updateMinimized(false)
+                        GlobalScope.launch {
+                            withContext(Dispatchers.IO) {
+                                updateWindowVisible(false)
+                                delay(500)
+                                takeScreenshot(remark, savePath)
+                                updateWindowVisible(true)
+                            }
+                        }
                     }) {
                     Text("点击截图")
                 }
@@ -119,18 +120,20 @@ fun App(updateMinimized: (status: Boolean) -> Unit) {
 }
 
 fun main() = application {
+    var windowVisible by remember { mutableStateOf(true) }
     val windowState = rememberWindowState(
         size = DpSize(500.dp, 300.dp),
         position = WindowPosition.Aligned(Alignment.Center)
     )
     Window(
+        visible = windowVisible,
         title = "截图工具",
         state = windowState,
         onCloseRequest = ::exitApplication,
         resizable = false
     ) {
-        App { status ->
-            windowState.isMinimized = status
+        App { visible ->
+            windowVisible = visible
         }
     }
 }
